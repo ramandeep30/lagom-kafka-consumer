@@ -1,6 +1,3 @@
-import sbt.Keys._
-import sbt._
-import Dependencies._
 
 organization in ThisBuild := "knoldus"
 version in ThisBuild := "1.0-SNAPSHOT"
@@ -11,11 +8,13 @@ scalaVersion in ThisBuild := "2.12.4"
 val macwire = "com.softwaremill.macwire" %% "macros" % "2.3.0" % "provided"
 val scalaTest = "org.scalatest" %% "scalatest" % "3.0.4" % Test
 
+lazy val `lagom-kafka-consumer` = (project in file("."))
+  .aggregate(`common`, `employee-api`, `system-api`, `system-impl`)
+
 lazy val `common` = (project in file("common"))
   .settings(
     libraryDependencies ++= Seq(
-      lagomScaladslApi,
-      kafkaClients
+      lagomScaladslApi
     )
   )
 
@@ -33,46 +32,20 @@ lazy val `system-api` = (project in file("system-api"))
       lagomScaladslApi
     )
   )
-  .settings(commonLagomAPISettings: _*)
   .dependsOn(`common`, `employee-api`)
 
 lazy val `system-impl` = (project in file("system-impl"))
+  .enablePlugins(LagomScala)
   .settings(
     libraryDependencies ++= Seq(
-      lagomScaladslApi,
-      lagomScaladslServer,
-      lagomScaladslDevMode,
-      lagomScaladslCluster,
-      lagomScaladslPersistence,
-      lagomScaladslPersistenceCassandra,
-      macwire
+      lagomScaladslKafkaBroker,
+      lagomScaladslTestKit,
+      macwire,
+      scalaTest
     )
   )
-  .settings(commonLagomImplSettings: _*)
-  .dependsOn(`common`, `employee-api`, `system-api`)
+  .settings(lagomForkedTestSettings: _*)
+  .dependsOn(`system-api`)
 
-lazy val `lagom-kafka-consumer-demo` = (project in file("."))
-  .aggregate(
-    `common`,
-    `employee-api`,
-    `system-api`,
-    `system-impl`
-  )
-
-val commonLagomAPISettings = Seq(
-  libraryDependencies ++= Seq(
-    lagomScaladslApi
-  )
-)
-
-val commonLagomImplSettings = Seq(
-  libraryDependencies ++= Seq(
-    lagomScaladslPersistenceCassandra,
-    lagomScaladslTestKit,
-    lagomScaladslPersistence,
-    lagomScaladslKafkaBroker
-  )
-)
-
-
-
+lagomCassandraEnabled in ThisBuild := false //set it to false to use external Cassandra
+lagomKafkaEnabled in ThisBuild := false //set it to false to use external Kafka

@@ -4,7 +4,6 @@ import com.example.Employee
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service}
 import com.lightbend.lagom.scaladsl.api.broker.Topic
 import com.typesafe.config.ConfigFactory
-import com.example.CommonTopics._
 
 trait EmployeeService extends Service {
 
@@ -12,14 +11,14 @@ trait EmployeeService extends Service {
 
   private val config = ConfigFactory.load()
 
-  private val environment = config.getString("employee.environment")
+  val employeeTopicName = config.getString("employee.topic")
 
   override def descriptor: Descriptor = {
 
     import Service._
 
     named("employee-service").withTopics(
-      topic(EmployeeTopic.fromEnvironment(environment).name, this.employeeInfoTopic)
+      topic(employeeTopicName, this.employeeInfoTopic)
     )
   }
 }

@@ -1,4 +1,4 @@
-package com.knoldus
+package com.knoldus.api
 
 import com.lightbend.lagom.scaladsl.api.{Descriptor, Service}
 
